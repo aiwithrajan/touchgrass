@@ -2,6 +2,7 @@
 title: TouchGrass: The Open-AI Agent That Succeeds When You Stop Using It
 published: true
 tags: devchallenge, hf26challenge, ai, opensource
+cover_image: https://raw.githubusercontent.com/aiwithrajan/touchgrass/main/touchgrass_cover.png
 ---
 
 *This is a submission for the [Hacktoberfest Open-Source AI Challenge Week 1: Touch Grass](https://dev.to/challenges/hacktoberfest-week1-2026-10-05)*

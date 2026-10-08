@@ -120,6 +120,7 @@ There are no recurring token subscription fees or rate limits. Anyone with an en
 ## Prize Categories
 
 - **Overall Grand Prize ($250):** Open-weight AI with Gemma 2 at its core, reversing screen addiction into physical real-world presence.
+- **Best Use of Render ($200):** Hosted on Render as a unified full-stack AI agent runtime, serving both the FastAPI backend and React SPA with automated zero-downtime builds.
 - **Best Use of TabPFN ($200):** Prior Labs Tabular Foundation Model forecasting the optimal 15-minute outdoor window and vitality score from microclimate tabular data.
 - **Best Use of ElevenLabs ($200):** Calm, spoken voice mission briefings and audio playback enabling screen-free immersion.
 - **Best Use of Sentry ($200):** Comprehensive agent tracing instrumenting Gemma generation, TabPFN tabular prediction spans, and policy checks.

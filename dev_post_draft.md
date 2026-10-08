@@ -49,15 +49,20 @@ The system uses an open-weight **Gemma 2** agent orchestrator to understand your
 
 {% youtube XvRvcdcq_Zw %}
 
+- **Live Web Application (Hosted on Render):** [https://touchgrass-agent.onrender.com](https://touchgrass-agent.onrender.com)
+- **GitHub Repository:** [https://github.com/aiwithrajan/touchgrass](https://github.com/aiwithrajan/touchgrass)
 - **YouTube Video Walkthrough (Full 1080p with Neural AI Voice):** [Watch on YouTube](https://youtu.be/XvRvcdcq_Zw)
 - **UI & Workflow Architecture Guide (PDF):** [`TOUCHGRASS_UI_AND_WORKFLOW_GUIDE.pdf`](./TOUCHGRASS_UI_AND_WORKFLOW_GUIDE.pdf)
 - **Try it Locally:** Run `./run.sh` or visit `http://localhost:8000` to experience the 3-state loop, TabPFN microclimate forecasting, and Offline Trail Mode.
 
 ---
 
-## Code
+## Code & Deployment
 
-The complete codebase is 100% open-source under the MIT license:
+The complete codebase is 100% open-source under the MIT license on GitHub:
+👉 **[github.com/aiwithrajan/touchgrass](https://github.com/aiwithrajan/touchgrass)**
+
+- **Hosting & Runtime (Render):** Deployed as a unified web service on [Render](https://render.com), serving both the FastAPI agent backend and high-performance React SPA.
 - **Backend:** FastAPI + Gemma 2 Agent Orchestrator + Safety & Diversity Policy Engine + Local-First Memory Store.
 - **Microclimate AI:** TabPFN Tabular Foundation Model (Prior Labs) for optimal outdoor window and vitality scoring.
 - **Frontend:** React 19 + TypeScript + Tailwind CSS v4 (Calm, distraction-free flat editorial UI system).

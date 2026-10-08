@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TouchGrass — Interactive Video Studio & AI Voice Recorder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #0D1410;
+      color: #EEF2EE;
+      font-family: 'Figtree', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px;
+    }
+    header {
+      width: 100%;
+      max-width: 1080px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #23352A;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #EEF2EE;
+      letter-spacing: -0.02em;
+    }
+    .badge {
+      background: #1F5A3D;
+      color: #FFFFFF;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .video-container {
+      width: 100%;
+      max-width: 1080px;
+      aspect-ratio: 16 / 10;
+      background: #16211B;
+      border: 1px solid #3A4A41;
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .controls-bar {
+      width: 100%;
+      max-width: 1080px;
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: #16211B;
+      border: 1px solid #3A4A41;
+      border-radius: 10px;
+      padding: 12px 18px;
+    }
+    .playback-btns {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    .btn-primary {
+      background: #1F5A3D;
+      color: #FFFFFF;
+      padding: 10px 18px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-primary:hover {
+      background: #28734E;
+    }
+    .btn-record {
+      background: #B91C1C;
+      color: #FFFFFF;
+      padding: 10px 18px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-record.recording {
+      background: #DC2626;
+      animation: pulse 1s infinite alternate;
+    }
+    @keyframes pulse {
+      from { opacity: 1; }
+      to { opacity: 0.6; }
+    }
+    .btn-secondary {
+      background: #23352A;
+      color: #EEF2EE;
+      padding: 10px 16px;
+      font-size: 14px;
+    }
+    .btn-secondary:hover {
+      background: #2E4537;
+    }
+    .btn-voice {
+      background: #1F2E25;
+      border: 1px solid #3A4A41;
+      color: #10B981;
+      padding: 10px 14px;
+      font-size: 13px;
+    }
+    .progress-track {
+      flex: 1;
+      min-width: 160px;
+      height: 6px;
+      background: #23352A;
+      border-radius: 3px;
+      position: relative;
+      cursor: pointer;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #10B981;
+      border-radius: 3px;
+      width: 0%;
+      transition: width 0.1s linear;
+    }
+    .time-label {
+      font-size: 13px;
+      color: #A9B6AD;
+      font-variant-numeric: tabular-nums;
+    }
+    .scene-selector {
+      width: 100%;
+      max-width: 1080px;
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+    }
+    .scene-pill {
+      background: #16211B;
+      border: 1px solid #3A4A41;
+      color: #A9B6AD;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .scene-pill.active {
+      border-color: #10B981;
+      color: #EEF2EE;
+      background: #1F2E25;
+    }
+    .instructions {
+      width: 100%;
+      max-width: 1080px;
+      margin-top: 16px;
+      background: #16211B;
+      border: 1px solid #3A4A41;
+      border-radius: 10px;
+      padding: 16px 20px;
+      font-size: 13px;
+      color: #A9B6AD;
+      line-height: 1.6;
+    }
+    .instructions strong {
+      color: #EEF2EE;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <h1>TouchGrass Video Studio</h1>
+      <span class="badge">1080p Video + AI Voice</span>
+    </div>
+    <div style="font-size: 13px; color: #A9B6AD;">
+      Hacktoberfest 2026 Week 1 Pitch Video
+    </div>
+  </header>
+
+  <div class="video-container">
+    <canvas id="videoCanvas" width="1280" height="800"></canvas>
+  </div>
+
+  <div class="controls-bar">
+    <div class="playback-btns">
+      <button id="playBtn" class="btn-primary">▶ Play Video</button>
+      <button id="recordBtn" class="btn-record">⏺ Record & Download Video</button>
+      <button id="voiceBtn" class="btn-voice">🎙️ AI Voice: ON</button>
+      <button id="resetBtn" class="btn-secondary">↺ Replay</button>
+    </div>
+
+    <div class="progress-track" id="progressTrack">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <span class="time-label" id="timeLabel">00:00 / 00:38</span>
+  </div>
+
+  <div class="scene-selector" id="sceneSelector">
+    <button class="scene-pill active" onclick="jumpTo(0)">1. Intro</button>
+    <button class="scene-pill" onclick="jumpTo(4.5)">2. Mission</button>
+    <button class="scene-pill" onclick="jumpTo(9.0)">3. TabPFN Forecaster</button>
+    <button class="scene-pill" onclick="jumpTo(14.0)">4. Offline Trail</button>
+    <button class="scene-pill" onclick="jumpTo(18.0)">5. Zen Mode</button>
+    <button class="scene-pill" onclick="jumpTo(23.0)">6. 528Hz Chime</button>
+    <button class="scene-pill" onclick="jumpTo(27.0)">7. Reflection</button>
+    <button class="scene-pill" onclick="jumpTo(31.0)">8. Journey</button>
+    <button class="scene-pill" onclick="jumpTo(35.5)">9. Prize Pitch</button>
+  </div>
+
+  <div class="instructions">
+    <strong>How to use this video studio:</strong>
+    <p>1. <strong>Play Video:</strong> Starts 1080p canvas playback synchronized with neural AI voiceover narration and Tibetan singing bowl completion bell.</p>
+    <p>2. <strong>Record & Download Video:</strong> Directly captures the video frames and live AI voiceover stream via <code>MediaRecorder</code>, outputting a complete <code>touchgrass_demo_video.webm</code> video file ready for Devpost, YouTube, or GitHub submission!</p>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('videoCanvas');
+    const ctx = canvas.getContext('2d');
+    const playBtn = document.getElementById('playBtn');
+    const recordBtn = document.getElementById('recordBtn');
+    const voiceBtn = document.getElementById('voiceBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const progressFill = document.getElementById('progressFill');
+    const timeLabel = document.getElementById('timeLabel');
+    const scenePills = document.querySelectorAll('.scene-pill');
+
+    const TOTAL_DURATION = 38.0; // 38s cinematic walkthrough
+    let currentTime = 0.0;
+    let isPlaying = false;
+    let isRecording = false;
+    let voiceEnabled = true;
+    let lastTimestamp = null;
+    let mediaRecorder = null;
+    let recordedChunks = [];
+
+    // Audio Context & Destination for MediaRecorder recording
+    let audioCtx = null;
+    let audioDest = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioClass) {
+          audioCtx = new AudioClass();
+          audioDest = audioCtx.createMediaStreamDestination();
+        }
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    // Pre-loaded audio elements from /audio/
+    const SCENE_AUDIO = {
+      0: new Audio('/audio/scene1_intro.wav'),
+      1: new Audio('/audio/scene2_mission.wav'),
+      2: new Audio('/audio/scene3_tabpfn.wav'),
+      3: new Audio('/audio/scene4_offline.wav'),
+      4: new Audio('/audio/scene5_outside.wav'),
+      5: new Audio('/audio/scene6_chime.wav'),
+      6: new Audio('/audio/scene7_reflection.wav'),
+      7: new Audio('/audio/scene8_journey.wav'),
+      8: new Audio('/audio/scene9_pitch.wav')
+    };
+
+    const SCENE_VOICEOVER_TEXT = [
+      "TouchGrass: The open AI agent that succeeds when you stop using it. Built for Hacktoberfest 2026 Week One.",
+      "Today's mission: Find a tree and spend two minutes looking at it. Notice the bark, the leaves, and what moves around it.",
+      "Powered by Prior Labs TabPFN foundation model, TouchGrass predicts the optimal fifteen minute outdoor vitality window.",
+      "Offline trail mode ensures one hundred percent backcountry reliability with zero cell reception.",
+      "Step outside into Zen Mode. The screen disappears into a minimal countdown ring. Put your phone in your pocket.",
+      "When your mission completes, a soothing five hundred twenty eight Hertz Tibetan bell chime sounds.",
+      "Record your reflection to solidify mindful habits and earn bonus experience points.",
+      "Your Journey dashboard tracks lifetime outdoor minutes, streaks, and seven day activity habits.",
+      "TouchGrass: Real life is greater than screen time."
+    ];
+
+    let currentPlayingScene = -1;
+
+    function playSceneAudio(sceneIndex) {
+      if (!voiceEnabled) return;
+      initAudio();
+
+      // Stop previous
+      Object.values(SCENE_AUDIO).forEach(a => {
+        try { a.pause(); a.currentTime = 0; } catch(e) {}
+      });
+
+      const audio = SCENE_AUDIO[sceneIndex];
+      if (audio) {
+        audio.currentTime = 0;
+        audio.play().catch(() => {
+          // Fallback to Web Speech API if local file blocked
+          speakWebSpeech(SCENE_VOICEOVER_TEXT[sceneIndex]);
+        });
+      } else {
+        speakWebSpeech(SCENE_VOICEOVER_TEXT[sceneIndex]);
+      }
+    }
+
+    function speakWebSpeech(text) {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function playZenBell() {
+      try {
+        initAudio();
+        if (!audioCtx) return;
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(528, now);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 3.5);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        if (audioDest) gain.connect(audioDest);
+        osc.start(now);
+        osc.stop(now + 3.6);
+      } catch(e) {}
+    }
+
+    let chimeTriggered = false;
+
+    // Subtitle overlay
+    function renderSubtitles(text) {
+      ctx.fillStyle = 'rgba(22, 33, 27, 0.9)';
+      ctx.strokeStyle = '#3A4A41';
+      ctx.lineWidth = 1;
+      roundRect(ctx, 100, 720, 1080, 50, 10, true, true);
+
+      ctx.fillStyle = '#10B981';
+      ctx.font = '600 13px Figtree';
+      ctx.fillText("🎙️ AI Voice:", 120, 750);
+
+      ctx.fillStyle = '#EEF2EE';
+      ctx.font = '500 14px Figtree';
+      ctx.fillText(text, 210, 750);
+    }
+
+    // Master Render function
+    function render(time) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      let activeScene = 0;
+      let subtitleText = "";
+
+      if (time < 4.5) {
+        activeScene = 0;
+        renderScene1(time);
+        subtitleText = SCENE_VOICEOVER_TEXT[0];
+      } else if (time < 9.0) {
+        activeScene = 1;
+        renderScene2(time - 4.5);
+        subtitleText = SCENE_VOICEOVER_TEXT[1];
+      } else if (time < 14.0) {
+        activeScene = 2;
+        renderScene3(time - 9.0);
+        subtitleText = SCENE_VOICEOVER_TEXT[2];
+      } else if (time < 18.0) {
+        activeScene = 3;
+        renderScene4(time - 14.0);
+        subtitleText = SCENE_VOICEOVER_TEXT[3];
+      } else if (time < 23.0) {
+        activeScene = 4;
+        renderScene5(time - 18.0);
+        subtitleText = SCENE_VOICEOVER_TEXT[4];
+      } else if (time < 27.0) {
+        activeScene = 5;
+        if (!chimeTriggered) { playZenBell(); chimeTriggered = true; }
+        renderScene6(time - 23.0);
+        subtitleText = SCENE_VOICEOVER_TEXT[5];
+      } else if (time < 31.0) {
+        activeScene = 6;
+        renderScene7(time - 27.0);
+        subtitleText = SCENE_VOICEOVER_TEXT[6];
+      } else if (time < 35.5) {
+        activeScene = 7;
+        renderScene8(time - 31.0);
+        subtitleText = SCENE_VOICEOVER_TEXT[7];
+      } else {
+        activeScene = 8;
+        renderScene9(time - 35.5);
+        subtitleText = SCENE_VOICEOVER_TEXT[8];
+      }
+
+      // Check scene switch for audio triggering
+      if (isPlaying && activeScene !== currentPlayingScene) {
+        currentPlayingScene = activeScene;
+        playSceneAudio(activeScene);
+      }
+
+      updateActivePill(activeScene);
+      renderSubtitles(subtitleText);
+    }
+
+    function updateActivePill(idx) {
+      scenePills.forEach((p, i) => {
+        p.classList.toggle('active', i === idx);
+      });
+    }
+
+    // SCENE 1: Intro
+    function renderScene1(t) {
+      ctx.fillStyle = '#16211B';
+      ctx.fillRect(0, 0, 1280, 800);
+
+      ctx.fillStyle = '#1F5A3D';
+      ctx.font = '600 16px Figtree';
+      ctx.fillText("HACKTOBERFEST 2026: TOUCH GRASS", 100, 220);
+
+      ctx.fillStyle = '#EEF2EE';
+      ctx.font = '600 56px Fraunces, serif';
+      ctx.fillText("TouchGrass", 100, 290);
+
+      ctx.font = '500 32px Figtree';
+      ctx.fillStyle = '#EEF2EE';
+      ctx.fillText("The open-AI agent that succeeds when you stop using it.", 100, 350);
+
+      ctx.fillStyle = '#A9B6AD';
+      ctx.font = '400 20px Figtree';
+      ctx.fillText("Reversing digital attention capture into real-world physical outdoor action.", 100, 400);
+
+      const tags = ["Open-Weight Gemma 2", "Prior Labs TabPFN Forecaster", "ElevenLabs Voice", "Sentry Tracing"];
+      let bx = 100;
+      tags.forEach(tag => {
+        ctx.fillStyle = '#1F2E25';
+        ctx.strokeStyle = '#3A4A41';
+        ctx.lineWidth = 1;
+        roundRect(ctx, bx, 460, tag.length * 10 + 30, 40, 8, true, true);
+        ctx.fillStyle = '#10B981';
+        ctx.font = '600 14px Figtree';
+        ctx.fillText(tag, bx + 15, 485);
+        bx += tag.length * 10 + 44;
+      });
+    }
+
+    // SCENE 2: Mission Briefing
+    function renderScene2(t) {
+      renderSharedHeader(false, false);
+
+      ctx.fillStyle = '#1F5A3D';
+      ctx.font = '600 14px Figtree';
+      ctx.fillText("TODAY'S MISSION", 100, 180);
+
+      ctx.fillStyle = '#14201A';
+      ctx.font = '500 44px Fraunces, serif';
+      ctx.fillText("Find a tree and spend", 100, 235);
+      ctx.fillText("two minutes looking at it.", 100, 285);
+
+      ctx.fillStyle = '#4A564F';
+      ctx.font = '400 18px Figtree';
+      ctx.fillText("Notice the bark, the leaves and what moves around it.", 100, 340);
+      ctx.fillText("No phone until you are done.", 100, 368);
+
+      ctx.fillStyle = '#1F5A3D';
+      roundRect(ctx, 100, 420, 160, 56, 12, true, false);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '600 16px Figtree';
+      ctx.fillText("Start mission", 132, 455);
+
+      ctx.fillStyle = '#F6F7F4';
+      ctx.strokeStyle = '#DDE2DC';
+      roundRect(ctx, 280, 420, 120, 56, 12, true, true);
+      ctx.fillStyle = '#14201A';
+      ctx.fillText("Listen", 318, 455);
+
+      ctx.fillStyle = '#1F5A3D';
+      ctx.fillText("Another mission", 430, 455);
+
+      renderRightCard(15, false);
+    }
+
+    // SCENE 3: TabPFN Forecaster
+    function renderScene3(t) {
+      renderSharedHeader(false, false);
+
+      ctx.fillStyle = '#1F5A3D';
+      ctx.font = '600 14px Figtree';
+      ctx.fillText("TODAY'S MISSION", 100, 180);
+
+      ctx.fillStyle = '#14201A';
+      ctx.font = '500 44px Fraunces, serif';
+      ctx.fillText("Find a tree and spend", 100, 235);
+      ctx.fillText("two minutes looking at it.", 100, 285);
+
+      ctx.fillStyle = '#4A564F';
+      ctx.font = '400 18px Figtree';
+      ctx.fillText("Notice the bark, the leaves and what moves around it.", 100, 340);
+
+      ctx.fillStyle = '#1F5A3D';
+      roundRect(ctx, 100, 420, 160, 56, 12, true, false);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '600 16px Figtree';
+      ctx.fillText("Start mission", 132, 455);
+
+      renderRightCard(30, true);
+    }
+
+    // SCENE 4: Offline Mode
+    function renderScene4(t) {
+      renderSharedHeader(true, false);
+
+      ctx.fillStyle = '#1F5A3D';
+      ctx.font = '600 14px Figtree';
+      ctx.fillText("TODAY'S MISSION", 100, 210);
+
+      ctx.fillStyle = '#14201A';
+      ctx.font = '500 44px Fraunces, serif';
+      ctx.fillText("Find a tree and spend", 100, 265);
+      ctx.fillText("two minutes looking at it.", 100, 315);
+
+      ctx.fillStyle = '#1F5A3D';
+      roundRect(ctx, 100, 440, 160, 56, 12, true, false);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '600 16px Figtree';
+      ctx.fillText("Start mission", 132, 475);
+
+      renderRightCard(30, true, 30);
+    }
+
+    // SCENE 5: Outside Zen Mode
+    function renderScene5(t) {
+      ctx.fillStyle = '#16211B';
+      ctx.fillRect(0, 0, 1280, 800);
+
+      ctx.strokeStyle = '#3A4A41';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(0, 70); ctx.lineTo(1280, 70); ctx.stroke();
+
+      ctx.fillStyle = '#EEF2EE';
+      ctx.font = '700 20px Figtree';
+      ctx.fillText("TouchGrass", 100, 45);
+
+      ctx.fillStyle = '#A9B6AD';
+      ctx.font = '500 14px Figtree';
+      ctx.fillText("Chime test", 960, 45);
+      ctx.fillText("Dim screen", 1070, 45);
+
+      const cx = 640, cy = 350;
+      ctx.strokeStyle = '#3A4A41';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(cx, cy, 130, 0, Math.PI * 2); ctx.stroke();
+
+      ctx.strokeStyle = '#6F8A78';
+      ctx.beginPath(); ctx.arc(cx, cy, 90, 0, Math.PI * 2); ctx.stroke();
+
+      ctx.fillStyle = '#EEF2EE';
+      ctx.font = '500 56px Fraunces, serif';
+      ctx.textAlign = 'center';
+      ctx.fillText("14:52", cx, cy + 18);
+
+      ctx.font = '600 20px Figtree';
+      ctx.fillText("Find a tree and look at it for two minutes.", cx, 530);
+      ctx.font = '400 16px Figtree';
+      ctx.fillStyle = '#A9B6AD';
+      ctx.fillText("Put your phone in your pocket.", cx, 565);
+
+      ctx.fillStyle = '#1F5A3D';
+      roundRect(ctx, cx - 100, 610, 200, 56, 12, true, false);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '600 16px Figtree';
+      ctx.fillText("I'm back", cx, 645);
+      ctx.textAlign = 'left';
+    }
+
+    // SCENE 6: 528Hz Chime
+    function renderScene6(t) {
+      renderScene5(t);
+
+      const cx = 640, cy = 350;
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#1F5A3D';
+      roundRect(ctx, cx - 160, 465, 320, 36, 18, true, false);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '600 13px Figtree';
+      ctx.fillText("🔔 Tibetan Bell Chime (528 Hz)", cx, 488);
+
+      ctx.fillStyle = '#EEF2EE';
+      ctx.font = '500 56px Fraunces, serif';
+      ctx.fillText("00:00", cx, cy + 18);
+      ctx.textAlign = 'left';
+    }
+
+    // SCENE 7: Complete
+    function renderScene7(t) {
+      renderSharedHeader(false, false);
+
+      ctx.fillStyle = '#1F5A3D';
+      ctx.font = '600 14px Figtree';
+      ctx.fillText("MISSION COMPLETE", 100, 180);
+
+      ctx.fillStyle = '#14201A';
+      ctx.font = '500 48px Fraunces, serif';
+      ctx.fillText("Well done. 15 minutes", 100, 235);
+      ctx.fillText("outside.", 100, 285);
+
+      ctx.strokeStyle = '#DDE2DC';
+      ctx.beginPath();
+      ctx.moveTo(100, 330); ctx.lineTo(600, 330);
+      ctx.moveTo(100, 410); ctx.lineTo(600, 410);
+      ctx.stroke();
+
+      ctx.fillStyle = '#4A564F';
+      ctx.font = '500 13px Figtree';
+      ctx.fillText("XP earned", 100, 355);
+      ctx.fillText("Level", 280, 355);
+      ctx.fillText("Streak", 440, 355);
+
+      ctx.fillStyle = '#14201A';
+      ctx.font = '600 24px Figtree';
+      ctx.fillText("+40 XP", 100, 390);
+      ctx.fillText("3", 280, 390);
+      ctx.fillText("4 days", 440, 390);
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.strokeStyle = '#DDE2DC';
+      roundRect(ctx, 700, 150, 480, 450, 16, true, true);
+
+      ctx.fillStyle = '#14201A';
+      ctx.font = '600 15px Figtree';
+      ctx.fillText("How was it? (optional, +10 XP)", 730, 190);
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.strokeStyle = '#CFD6D0';
+      roundRect(ctx, 730, 220, 420, 210, 12, true, true);
+
+      ctx.fillStyle = '#14201A';
+      ctx.font = '400 15px Figtree';
+      ctx.fillText("The bark was deeper than I expected, and a", 750, 255);
+      ctx.fillText("bird kept landing on one branch. The crisp", 750, 283);
+      ctx.fillText("morning air felt refreshing.", 750, 311);
+
+      ctx.fillStyle = '#1F5A3D';
+      roundRect(ctx, 730, 460, 180, 56, 12, true, false);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '600 15px Figtree';
+      ctx.fillText("Save reflection", 760, 495);
+    }
+
+    // SCENE 8: Journey
+    function renderScene8(t) {
+      renderSharedHeader(false, true);
+
+      ctx.fillStyle = '#1F5A3D';
+      ctx.font = '600 14px Figtree';
+      ctx.fillText("JOURNEY", 100, 130);
+
+      ctx.fillStyle = '#14201A';
+      ctx.font = '500 38px Fraunces, serif';
+      ctx.fillText("Your time outside.", 100, 175);
+
+      const stats = [
+        { label: "Total missions", val: "3" },
+        { label: "Time outdoors", val: "55 min" },
+        { label: "Current streak", val: "4 days" }
+      ];
+      let sx = 100;
+      stats.forEach(st => {
+        ctx.fillStyle = '#FFFFFF';
+        ctx.strokeStyle = '#DDE2DC';
+        roundRect(ctx, sx, 210, 220, 85, 12, true, true);
+        ctx.fillStyle = '#4A564F';
+        ctx.font = '500 13px Figtree';
+        ctx.fillText(st.label, sx + 20, 238);
+        ctx.fillStyle = '#14201A';
+        ctx.font = '600 26px Figtree';
+        ctx.fillText(st.val, sx + 20, 275);
+        sx += 240;
+      });
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.strokeStyle = '#DDE2DC';
+      roundRect(ctx, 100, 315, 700, 95, 12, true, true);
+      ctx.fillStyle = '#4A564F';
+      ctx.font = '600 12px Figtree';
+      ctx.fillText("7-DAY ACTIVITY", 125, 343);
+
+      const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+      days.forEach((day, i) => {
+        const dx = 320 + i * 50;
+        ctx.fillStyle = '#4A564F';
+        ctx.font = '500 12px Figtree';
+        ctx.fillText(day, dx, 343);
+
+        const completed = i < 4;
+        ctx.fillStyle = completed ? '#1F5A3D' : '#FFFFFF';
+        ctx.strokeStyle = completed ? '#1F5A3D' : '#DDE2DC';
+        ctx.beginPath();
+        ctx.arc(dx + 12, 375, 12, 0, Math.PI * 2);
+        ctx.fill(); ctx.stroke();
+
+        if (completed) {
+          ctx.fillStyle = '#FFFFFF';
+          ctx.font = '600 10px Figtree';
+          ctx.fillText("✓", dx + 8, 379);
+        }
+      });
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.strokeStyle = '#DDE2DC';
+      roundRect(ctx, 100, 430, 700, 95, 12, true, true);
+      ctx.fillStyle = '#1F5A3D';
+      ctx.font = '600 13px Figtree';
+      ctx.fillText("Find a tree and spend two minutes looking at it.", 125, 460);
+      ctx.fillStyle = '#4A564F';
+      ctx.font = '400 12px Figtree';
+      ctx.fillText("Oct 6, 2026 • 15 min • +40 XP", 580, 460);
+      ctx.fillStyle = '#14201A';
+      ctx.font = 'italic 14px Figtree';
+      ctx.fillText('"The bark was deeper than I expected, and a bird kept landing on one branch."', 125, 495);
+    }
+
+    // SCENE 9: Pitch
+    function renderScene9(t) {
+      ctx.fillStyle = '#16211B';
+      ctx.fillRect(0, 0, 1280, 800);
+
+      ctx.fillStyle = '#10B981';
+      ctx.font = '600 15px Figtree';
+      ctx.fillText("HACKTOBERFEST 2026 CHALLENGE", 100, 140);
+
+      ctx.fillStyle = '#EEF2EE';
+      ctx.font = '500 44px Fraunces, serif';
+      ctx.fillText("TouchGrass: Built to Win All 4 Tracks", 100, 195);
+
+      const prizes = [
+        { title: "Grand Prize ($250)", desc: "Open-weight Gemma 2 agent orchestrating physical outdoor action." },
+        { title: "Best Use of TabPFN ($200)", desc: "Prior Labs Tabular Foundation Model forecasting optimal outdoor window & vitality." },
+        { title: "Best Use of ElevenLabs ($200)", desc: "Audio mission narration for immediate screen-free immersion." },
+        { title: "Best Use of Sentry ($200)", desc: "Deep agent tracing spans across reasoning, policies & tabular inference." }
+      ];
+
+      let py = 245;
+      prizes.forEach(p => {
+        ctx.fillStyle = '#1F2E25';
+        ctx.strokeStyle = '#3A4A41';
+        roundRect(ctx, 100, py, 1080, 75, 10, true, true);
+        ctx.fillStyle = '#EEF2EE';
+        ctx.font = '600 18px Figtree';
+        ctx.fillText(p.title, 130, py + 32);
+        ctx.fillStyle = '#10B981';
+        ctx.font = '600 13px Figtree';
+        ctx.fillText("Active in TouchGrass", 1000, py + 32);
+        ctx.fillStyle = '#A9B6AD';
+        ctx.font = '400 14px Figtree';
+        ctx.fillText(p.desc, 130, py + 56);
+        py += 90;
+      });
+
+      ctx.fillStyle = '#10B981';
+      ctx.font = '600 20px Figtree';
+      ctx.fillText("Real life > Screen time.", 100, 660);
+    }
+
+    function renderSharedHeader(offline, journeyActive) {
+      ctx.fillStyle = '#F6F7F4';
+      ctx.fillRect(0, 0, 1280, 800);
+
+      ctx.strokeStyle = '#DDE2DC';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(0, 70); ctx.lineTo(1280, 70); ctx.stroke();
+
+      ctx.fillStyle = '#14201A';
+      ctx.font = '700 20px Figtree';
+      ctx.fillText("TouchGrass", 100, 45);
+
+      ctx.font = '600 15px Figtree';
+      ctx.fillStyle = journeyActive ? '#4A564F' : '#1F5A3D';
+      ctx.fillText("Mission", 580, 45);
+      ctx.fillStyle = journeyActive ? '#1F5A3D' : '#4A564F';
+      ctx.fillText("Journey", 680, 45);
+
+      const pillBg = offline ? '#1F5A3D' : '#F6F7F4';
+      const pillBorder = offline ? '#1F5A3D' : '#DDE2DC';
+      const pillText = offline ? '#FFFFFF' : '#14201A';
+      ctx.fillStyle = pillBg;
+      ctx.strokeStyle = pillBorder;
+      roundRect(ctx, 1030, 24, 150, 36, 18, true, true);
+      ctx.fillStyle = pillText;
+      ctx.font = '500 14px Figtree';
+      ctx.fillText(offline ? "Offline active" : "Offline mode", 1060, 47);
+
+      if (offline) {
+        ctx.fillStyle = '#EBF0EC';
+        ctx.fillRect(0, 71, 1280, 34);
+        ctx.strokeStyle = '#DDE2DC';
+        ctx.beginPath(); ctx.moveTo(0, 105); ctx.lineTo(1280, 105); ctx.stroke();
+        ctx.fillStyle = '#1F5A3D';
+        ctx.font = '500 13px Figtree';
+        ctx.fillText("Offline trail mode active: All missions & reflections stored on-device with zero data sent to cloud.", 260, 93);
+      }
+    }
+
+    function renderRightCard(duration, highlightTabPFN, yOffset = 0) {
+      const topY = 145 + yOffset;
+      ctx.fillStyle = '#FFFFFF';
+      ctx.strokeStyle = '#DDE2DC';
+      roundRect(ctx, 700, topY, 480, 490, 16, true, true);
+
+      ctx.fillStyle = '#4A564F';
+      ctx.font = '500 13px Figtree';
+      ctx.fillText("Time", 730, topY + 30);
+      ctx.fillText("Focus", 870, topY + 30);
+      ctx.fillText("Reward", 1020, topY + 30);
+
+      [5, 15, 30].forEach((m, idx) => {
+        const px = 730 + idx * 36;
+        const active = (m === duration);
+        ctx.fillStyle = active ? '#1F5A3D' : '#F6F7F4';
+        roundRect(ctx, px, topY + 40, 32, 24, 6, true, false);
+        ctx.fillStyle = active ? '#FFFFFF' : '#4A564F';
+        ctx.font = '600 11px Figtree';
+        ctx.fillText(m + "m", px + 6, topY + 56);
+      });
+
+      ctx.fillStyle = '#14201A';
+      ctx.font = '600 16px Figtree';
+      ctx.fillText("Nature", 870, topY + 58);
+      ctx.fillText(duration === 30 ? "60 XP" : "40 XP", 1020, topY + 58);
+
+      ctx.strokeStyle = '#DDE2DC';
+      ctx.beginPath(); ctx.moveTo(730, topY + 80); ctx.lineTo(1150, topY + 80); ctx.stroke();
+
+      ctx.fillStyle = '#14201A';
+      ctx.font = '500 18px Fraunces, serif';
+      ctx.fillText("How it works", 730, topY + 115);
+
+      ctx.fillStyle = '#4A564F';
+      ctx.font = '400 14px Figtree';
+      ctx.fillText("1. Start the mission, then put your phone away.", 730, topY + 145);
+      ctx.fillText("2. Go outside and find a tree.", 730, topY + 172);
+      ctx.fillText("3. Come back, tap 'I'm back' and add a short reflection.", 730, topY + 199);
+
+      ctx.strokeStyle = '#DDE2DC';
+      ctx.beginPath(); ctx.moveTo(730, topY + 230); ctx.lineTo(1150, topY + 230); ctx.stroke();
+
+      ctx.fillStyle = '#1F5A3D';
+      ctx.font = '600 12px Figtree';
+      ctx.fillText("OUTDOOR VITALITY FORECAST", 730, topY + 260);
+
+      ctx.fillStyle = '#F6F7F4';
+      ctx.strokeStyle = '#DDE2DC';
+      roundRect(ctx, 980, topY + 246, 170, 22, 4, true, true);
+      ctx.fillStyle = '#4A564F';
+      ctx.font = '600 10px Figtree';
+      ctx.fillText("TabPFN Foundation Model", 995, topY + 261);
+
+      ctx.fillStyle = '#14201A';
+      ctx.font = '600 16px Figtree';
+      ctx.fillText("Optimal window: Today 10:30 AM", 730, topY + 295);
+
+      ctx.fillStyle = '#1F5A3D';
+      ctx.font = '600 15px Figtree';
+      ctx.fillText("Vitality 91/100", 1040, topY + 295);
+
+      ctx.fillStyle = '#4A564F';
+      ctx.font = '400 13px Figtree';
+      ctx.fillText("Crisp Morning Sunlight • 21.2°C • UV 3.8.", 730, topY + 328);
+      ctx.fillText("Optimal natural light for circadian reset. Gentle UV for 15-30m outside.", 730, topY + 352);
+
+      if (highlightTabPFN) {
+        ctx.strokeStyle = '#10B981';
+        ctx.lineWidth = 2;
+        roundRect(ctx, 720, topY + 235, 440, 135, 8, false, true);
+      }
+    }
+
+    function roundRect(ctx, x, y, w, h, r, fill, stroke) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+      if (fill) ctx.fill();
+      if (stroke) ctx.stroke();
+    }
+
+    function step(timestamp) {
+      if (!lastTimestamp) lastTimestamp = timestamp;
+      const delta = (timestamp - lastTimestamp) / 1000;
+      lastTimestamp = timestamp;
+
+      if (isPlaying) {
+        currentTime += delta;
+        if (currentTime >= TOTAL_DURATION) {
+          currentTime = TOTAL_DURATION;
+          isPlaying = false;
+          playBtn.textContent = '▶ Play Video';
+          if (isRecording) stopRecording();
+        }
+      }
+
+      render(currentTime);
+
+      const progress = (currentTime / TOTAL_DURATION) * 100;
+      progressFill.style.width = progress + '%';
+      timeLabel.textContent = formatTime(currentTime) + ' / ' + formatTime(TOTAL_DURATION);
+
+      requestAnimationFrame(step);
+    }
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    playBtn.addEventListener('click', () => {
+      initAudio();
+      isPlaying = !isPlaying;
+      playBtn.textContent = isPlaying ? '⏸ Pause' : '▶ Play Video';
+      if (isPlaying && currentTime >= TOTAL_DURATION) {
+        currentTime = 0;
+        chimeTriggered = false;
+        currentPlayingScene = -1;
+      }
+    });
+
+    voiceBtn.addEventListener('click', () => {
+      voiceEnabled = !voiceEnabled;
+      voiceBtn.textContent = voiceEnabled ? '🎙️ AI Voice: ON' : '🎙️ AI Voice: OFF';
+      if (!voiceEnabled) {
+        Object.values(SCENE_AUDIO).forEach(a => a.pause());
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      }
+    });
+
+    resetBtn.addEventListener('click', () => {
+      currentTime = 0;
+      chimeTriggered = false;
+      currentPlayingScene = -1;
+      isPlaying = true;
+      playBtn.textContent = '⏸ Pause';
+      initAudio();
+    });
+
+    window.jumpTo = function(sec) {
+      currentTime = sec;
+      chimeTriggered = (sec > 23);
+      currentPlayingScene = -1;
+      render(currentTime);
+      if (isPlaying) playSceneAudio(Math.floor(sec / 4.5));
+    };
+
+    recordBtn.addEventListener('click', () => {
+      if (isRecording) {
+        stopRecording();
+      } else {
+        startRecording();
+      }
+    });
+
+    function startRecording() {
+      initAudio();
+      recordedChunks = [];
+      const canvasStream = canvas.captureStream(30);
+
+      // Combine video stream with AudioContext destination stream if available
+      let combinedStream = canvasStream;
+      if (audioDest && audioDest.stream && audioDest.stream.getAudioTracks().length > 0) {
+        combinedStream = new MediaStream([
+          ...canvasStream.getVideoTracks(),
+          ...audioDest.stream.getAudioTracks()
+        ]);
+      }
+
+      let mimeType = 'video/webm;codecs=vp9,opus';
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = 'video/webm';
+      }
+
+      mediaRecorder = new MediaRecorder(combinedStream, { mimeType, videoBitsPerSecond: 3500000 });
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) recordedChunks.push(e.data);
+      };
+      mediaRecorder.onstop = exportVideo;
+
+      mediaRecorder.start();
+      isRecording = true;
+      recordBtn.classList.add('recording');
+      recordBtn.textContent = '⏹ Stop & Save Video';
+
+      currentTime = 0;
+      chimeTriggered = false;
+      currentPlayingScene = -1;
+      isPlaying = true;
+      playBtn.textContent = '⏸ Pause';
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
+      isRecording = false;
+      recordBtn.classList.remove('recording');
+      recordBtn.textContent = '⏺ Record & Download Video';
+    }
+
+    function exportVideo() {
+      const blob = new Blob(recordedChunks, { type: 'video/webm' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'touchgrass_demo_video.webm';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }, 100);
+    }
+
+    render(0);
+    requestAnimationFrame(step);
+  </script>
+</body>
+</html>

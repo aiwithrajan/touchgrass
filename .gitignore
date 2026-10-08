@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+env/
+venv/
+ENV/
+
+# Node
+frontend/node_modules/
+frontend/.npm/
+
+# Environment and secrets
+.env
+.env.local
+
+# Temp media / chrome browser automation
+.chrome_tmp/
+audio/*.wav
+audio/*.m4a
+*.wav
+*.m4a
+*.mp4
+!touchgrass_demo.mp4
+test_frame.png
+
+# System
+.DS_Store
+Thumbs.db

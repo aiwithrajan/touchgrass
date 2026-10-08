@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-light: #F6F7F4;
+    --ink: #14201A;
+    --muted: #4A564F;
+    --border: #DDE2DC;
+    --input-border: #CFD6D0;
+    --card-bg: #FFFFFF;
+    --accent: #1F5A3D;
+
+    --dark-bg: #16211B;
+    --dark-text: #EEF2EE;
+    --dark-muted: #A9B6AD;
+    --dark-border-1: #3A4A41;
+    --dark-border-2: #6F8A78;
+  }
+}
+
+body {
+  margin: 0;
+  font-family: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--bg-light);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-serif {
+  font-family: 'Fraunces', serif;
+  font-optical-sizing: auto;
+  font-variation-settings: "opsz" 144;
+}
+
+.font-sans {
+  font-family: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Primary focus ring for accessibility */
+button:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #1F5A3D;
+  outline-offset: 2px;
+}
